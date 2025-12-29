@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Namespace
-meta
+metadata
   name: app
 ---
 apiVersion: v1
 kind: Service
-meta
+metadata
   name: kafka-redis-app
   namespace: app
 spec:
@@ -16,7 +16,7 @@ spec:
 ---
 apiVersion: apps/v1
 kind: Deployment
-meta
+metadata
   name: kafka-redis-app
   namespace: app
 spec:
@@ -25,7 +25,7 @@ spec:
     matchLabels:
       app: kafka-redis-app
   template:
-    meta
+    metadata
       labels:
         app: kafka-redis-app
     spec:
