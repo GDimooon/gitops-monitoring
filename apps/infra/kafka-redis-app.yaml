@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+meta
+  name: app
+---
+apiVersion: v1
+kind: Service
+meta
+  name: kafka-redis-app
+  namespace: app
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: kafka-redis-app
+---
+apiVersion: apps/v1
+kind: Deployment
+meta
+  name: kafka-redis-app
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-redis-app
+  template:
+    meta
+      labels:
+        app: kafka-redis-app
+    spec:
+      containers:
+      - name: app
+        image: python:3.11-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          pip install kafka-python redis flask && \
+          cat > app.py << 'PY'
+          from flask import Flask
+          from kafka import KafkaProducer
+          import redis
+          import json
+          import time
+          import os
+
+          app = Flask(__name__)
+          producer = KafkaProducer(bootstrap_servers='kafka.infra.svc.cluster.local:9092')
+          r = redis.Redis(host='redis.infra.svc.cluster.local', port=6379, decode_responses=True)
+
+          @app.route('/send/<msg>')
+          def send(msg):
+              producer.send('test-topic', msg.encode('utf-8'))
+              r.set('last_message', msg)
+              return f"Sent: {msg}"
+
+          @app.route('/last')
+          def last():
+              return r.get('last_message') or 'No message'
+
+          if __name__ == '__main__':
+              app.run(host='0.0.0.0', port=8000)
+          PY
+          python app.py
+        ports:
+        - containerPort: 8000
