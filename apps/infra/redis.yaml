@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Namespace
-meta
+metadata
   name: infra
 ---
 apiVersion: v1
 kind: Service
-meta
+metadata
   name: redis
   namespace: infra
 spec:
@@ -16,7 +16,7 @@ spec:
 ---
 apiVersion: apps/v1
 kind: Deployment
-meta
+metadata
   name: redis
   namespace: infra
 spec:
@@ -25,7 +25,7 @@ spec:
     matchLabels:
       app: redis
   template:
-    meta
+    metadata
       labels:
         app: redis
     spec:
